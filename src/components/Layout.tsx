@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
+import { Menu } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,7 +13,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-vidsmith-border backdrop-blur-sm bg-vidsmith-darker/70 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/">
+          <Link to="/" className="flex items-center">
             <Logo />
             <span className="ml-2 text-xl font-semibold text-white">CreAItive</span>
           </Link>
@@ -22,11 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link to="/upload" className="btn-primary">Get Started</Link>
           </nav>
           <button className="block md:hidden text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
+            <Menu size={24} />
           </button>
         </div>
       </header>
