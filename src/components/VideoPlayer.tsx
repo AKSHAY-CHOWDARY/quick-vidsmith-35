@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipBack, Download, Volume2, VolumeX } from 'lucide-react';
 
@@ -35,16 +34,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title = 'Generated Clip'
       setProgress(100);
     };
 
+    const handleError = (error: Event) => {
+      console.error('Error loading video:', error);
+      setIsLoaded(false);
+    };
+
     video.addEventListener('timeupdate', updateProgress);
     video.addEventListener('durationchange', handleDurationChange);
     video.addEventListener('ended', handleVideoEnd);
     video.addEventListener('canplay', () => setIsLoaded(true));
+    video.addEventListener('error', handleError);
 
     return () => {
       video.removeEventListener('timeupdate', updateProgress);
       video.removeEventListener('durationchange', handleDurationChange);
       video.removeEventListener('ended', handleVideoEnd);
       video.removeEventListener('canplay', () => setIsLoaded(true));
+      video.removeEventListener('error', handleError);
     };
   }, []);
 
@@ -96,6 +102,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title = 'Generated Clip'
   };
 
   const handleDownload = () => {
+    // Create a temporary anchor element for download
     const a = document.createElement('a');
     a.href = src;
     a.download = `${title.replace(/\s+/g, '_').toLowerCase()}.mp4`;
@@ -129,7 +136,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title = 'Generated Clip'
             min="0"
             max="100"
             value={progress}
-            onChange={handleProgressChange}
+            onChange={(e) => {
+              const video = videoRef.current;
+              if (!video) return;
+              
+              const newTime = (parseInt(e.target.value) / 100) * duration;
+              video.currentTime = newTime;
+              setProgress(parseInt(e.target.value));
+              setCurrentTime(newTime);
+            }}
             className="w-full h-1 bg-vidsmith-muted accent-vidsmith-accent rounded-lg appearance-none cursor-pointer"
           />
           
@@ -141,14 +156,33 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title = 'Generated Clip'
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
-                onClick={restartVideo}
+                onClick={() => {
+                  const video = videoRef.current;
+                  if (!video) return;
+                  
+                  video.currentTime = 0;
+                  if (!isPlaying) {
+                    video.play();
+                    setIsPlaying(true);
+                  }
+                }}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 <SkipBack size={20} />
               </button>
               
               <button
-                onClick={togglePlay}
+                onClick={() => {
+                  const video = videoRef.current;
+                  if (!video) return;
+
+                  if (isPlaying) {
+                    video.pause();
+                  } else {
+                    video.play();
+                  }
+                  setIsPlaying(!isPlaying);
+                }}
                 className="w-10 h-10 bg-vidsmith-accent rounded-full flex items-center justify-center text-white hover:bg-vidsmith-accent-light transition-colors"
               >
                 {isPlaying ? (
@@ -159,7 +193,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title = 'Generated Clip'
               </button>
               
               <button
-                onClick={toggleMute}
+                onClick={() => {
+                  const video = videoRef.current;
+                  if (!video) return;
+                  
+                  video.muted = !video.muted;
+                  setIsMuted(!isMuted);
+                }}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 {isMuted ? (
@@ -182,6 +222,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title = 'Generated Clip'
       </div>
     </div>
   );
+};
+
+// Helper function to format time
+const formatTime = (time: number) => {
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 };
 
 export default VideoPlayer;

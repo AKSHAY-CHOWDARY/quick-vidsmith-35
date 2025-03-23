@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import VideoInput from './VideoInput';
 import ProcessingStatus from './ProcessingStatus';
 import VideoPlayer from './VideoPlayer';
 import { toast } from 'sonner';
-import { processVideo } from '@/services/videoService';
+import { processVideo, checkJobStatus, getVideoUrl } from '@/services/videoService';
 import { VideoInput as VideoInputType } from '@/lib/types';
 
 const VideoProcessor: React.FC = () => {
@@ -13,55 +14,66 @@ const VideoProcessor: React.FC = () => {
   const [processingStage, setProcessingStage] = useState('Initializing');
   const [detailedStatus, setDetailedStatus] = useState<string>('');
   const [processedVideoUrl, setProcessedVideoUrl] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   
-  // Processing stages with realistic timing
-  const processingStages = [
-    { stage: 'Initializing', details: ['Loading video processor', 'Setting up environment'] },
-    { stage: 'Analyzing video content', details: ['Scanning video frames', 'Detecting scene changes', 'Analyzing audio track'] },
-    { stage: 'Identifying key moments', details: ['Detecting important segments', 'Scoring content relevance', 'Finding peak moments'] },
-    { stage: 'Generating clips', details: ['Cutting video segments', 'Applying transitions', 'Optimizing for selected aspect ratio'] },
-    { stage: 'Creating captions', details: ['Transcribing audio', 'Generating timed subtitles', 'Formatting captions'] },
-    { stage: 'Finalizing output', details: ['Rendering final video', 'Optimizing file size', 'Preparing download'] }
-  ];
+  // Polling function to check job status
+  const pollJobStatus = useCallback(async (id: string) => {
+    try {
+      const status = await checkJobStatus(id);
+      
+      // Update progress and status message
+      setProgress(status.progress);
+      setProcessingStage(status.message || 'Processing');
+      
+      if (status.status === 'completed' && status.output_video) {
+        // Job completed successfully
+        const videoUrl = getVideoUrl(status.output_video);
+        setProcessedVideoUrl(videoUrl);
+        setIsProcessing(false);
+        toast.success('Video processing complete!');
+        return true;
+      } else if (status.status === 'failed') {
+        // Job failed
+        setIsProcessing(false);
+        toast.error(`Processing failed: ${status.error || 'Unknown error'}`);
+        return true;
+      }
+      
+      // If job is still processing, return false to continue polling
+      return false;
+    } catch (error) {
+      console.error('Error polling job status:', error);
+      setIsProcessing(false);
+      toast.error('Error checking processing status');
+      return true;  // Stop polling on error
+    }
+  }, []);
 
-  // Simulate processing with progress updates
+  // Effect for polling job status
   useEffect(() => {
-    if (!isProcessing || !videoSource) return;
+    if (!isProcessing || !jobId) return;
     
-    let currentProgress = 0;
-    let currentStageIndex = 0;
-    let detailIndex = 0;
+    let timerId: number;
     
-    // Update progress and stage at intervals
-    const progressInterval = setInterval(() => {
-      // Increment progress
-      const increment = Math.random() * 2 + 0.1;
-      currentProgress += increment;
+    const poll = async () => {
+      const shouldStop = await pollJobStatus(jobId);
       
-      // Update stage based on progress
-      if (currentProgress > (currentStageIndex + 1) * (100 / processingStages.length)) {
-        currentStageIndex = Math.min(currentStageIndex + 1, processingStages.length - 1);
-        setProcessingStage(processingStages[currentStageIndex].stage);
-        detailIndex = 0; // Reset detail index for new stage
+      if (!shouldStop) {
+        // Continue polling every 2 seconds
+        timerId = window.setTimeout(poll, 2000);
       }
-      
-      // Cycle through detailed status messages
-      if (currentProgress % 5 < 0.2) { // Change details occasionally
-        const currentStage = processingStages[currentStageIndex];
-        detailIndex = (detailIndex + 1) % currentStage.details.length;
-        setDetailedStatus(currentStage.details[detailIndex]);
-      }
-      
-      if (currentProgress >= 100) {
-        clearInterval(progressInterval);
-        return;
-      }
-      
-      setProgress(currentProgress);
-    }, 200);
+    };
     
-    return () => clearInterval(progressInterval);
-  }, [isProcessing, videoSource]);
+    // Start polling
+    poll();
+    
+    // Cleanup
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [isProcessing, jobId, pollJobStatus]);
 
   const handleVideoSubmit = async (data: VideoInputType) => {
     setVideoSource(data);
@@ -70,40 +82,34 @@ const VideoProcessor: React.FC = () => {
     setProcessingStage('Initializing');
     setDetailedStatus('Preparing video processor');
     setProcessedVideoUrl(null);
+    setJobId(null);
     
     toast.info(`Starting video processing with ${data.aspectRatio} aspect ratio${data.captions ? ' and captions' : ''}`);
     console.log('Processing with options:', {
       aspectRatio: data.aspectRatio,
-      captions: data.captions
+      captions: data.captions,
+      query: data.query
     });
     
     try {
-      // For development/demo purposes, you can choose between the real API call and simulation
-      const USE_REAL_API = false; // Set to true to use the real backend
+      // Call API to start processing
+      const response = await processVideo(data);
       
-      if (USE_REAL_API) {
-        // Use our axios service to make the real API call
-        const response = await processVideo(data);
-        
-        if (!response.success) {
-          throw new Error(response.error);
-        }
-        
-        setProcessedVideoUrl(response.videoUrl || null);
+      if (response.status === 'failed' || response.error) {
+        throw new Error(response.error || 'Failed to start processing');
+      }
+      
+      // Set job ID for status polling
+      setJobId(response.id);
+      setProgress(response.progress);
+      setProcessingStage(response.message || 'Processing started');
+      
+      // If the job was already completed (unlikely but possible)
+      if (response.status === 'completed' && response.output_video) {
+        const videoUrl = getVideoUrl(response.output_video);
+        setProcessedVideoUrl(videoUrl);
         setIsProcessing(false);
-        setProgress(100);
         toast.success('Video processing complete!');
-      } else {
-        // Simulate processing time for demo purposes when no real backend is available
-        setTimeout(() => {
-          // Simulate a successful response with a sample video URL
-          const sampleVideoUrl = 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-          
-          setProcessedVideoUrl(sampleVideoUrl);
-          setIsProcessing(false);
-          setProgress(100);
-          toast.success('Video processing complete!');
-        }, 12000); // Longer processing time for better demo
       }
     } catch (error) {
       console.error('Error processing video:', error);
@@ -138,6 +144,7 @@ const VideoProcessor: React.FC = () => {
                 setVideoSource(null);
                 setProcessedVideoUrl(null);
                 setIsProcessing(false);
+                setJobId(null);
               }}
             >
               Process another video

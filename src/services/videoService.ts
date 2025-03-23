@@ -1,13 +1,14 @@
-
 import axios from 'axios';
 import { VideoInput } from '@/lib/types';
 
-const API_URL = 'https://your-backend-url.com/api'; // Replace with your actual backend URL
+const API_URL = 'http://localhost:8000'; // Replace with your actual FastAPI backend URL
 
 export interface VideoProcessingResponse {
-  success: boolean;
-  videoUrl?: string;
-  thumbnailUrl?: string;
+  id: string;
+  status: string;
+  progress: number;
+  message: string;
+  output_video?: string;
   error?: string;
 }
 
@@ -22,16 +23,15 @@ export const processVideo = async (videoData: VideoInput): Promise<VideoProcessi
     const formData = new FormData();
     
     // Add all parameters to form data
-    formData.append('type', videoData.type);
     formData.append('query', videoData.query || '');
-    formData.append('aspectRatio', videoData.aspectRatio);
-    formData.append('captions', videoData.captions.toString());
+    formData.append('aspect_ratio', mapAspectRatio(videoData.aspectRatio));
+    formData.append('add_captions', videoData.captions.toString());
     
     // Append either file or URL
     if (videoData.type === 'url') {
-      formData.append('url', videoData.source as string);
+      formData.append('video_url', videoData.source as string);
     } else {
-      formData.append('file', videoData.source as File);
+      formData.append('video_file', videoData.source as File);
     }
     
     // Log what we're sending (for debugging)
@@ -44,19 +44,11 @@ export const processVideo = async (videoData: VideoInput): Promise<VideoProcessi
     
     // Make the POST request
     const response = await axios.post<VideoProcessingResponse>(
-      `${API_URL}/process-video`, 
+      `${API_URL}/process`, 
       formData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
-        },
-        // Optional: track upload progress
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 100)
-          );
-          console.log('Upload progress:', percentCompleted);
-          // You could update a progress state here
         },
       }
     );
@@ -68,15 +60,85 @@ export const processVideo = async (videoData: VideoInput): Promise<VideoProcessi
     if (axios.isAxiosError(error)) {
       // Handle Axios specific errors
       return {
-        success: false,
-        error: error.response?.data?.message || error.message || 'Failed to process video'
+        id: '',
+        status: 'failed',
+        progress: 0,
+        message: 'Failed to process video',
+        error: error.response?.data?.detail || error.message
       };
     }
     
     // Handle other errors
     return {
-      success: false,
+      id: '',
+      status: 'failed',
+      progress: 0,
+      message: 'An unexpected error occurred',
       error: 'An unexpected error occurred'
     };
   }
+};
+
+/**
+ * Check the status of a video processing job
+ * @param jobId The ID of the job to check
+ * @returns Promise with the job status
+ */
+export const checkJobStatus = async (jobId: string): Promise<VideoProcessingResponse> => {
+  try {
+    const response = await axios.get<VideoProcessingResponse>(
+      `${API_URL}/status/${jobId}`
+    );
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error checking job status:', error);
+    
+    if (axios.isAxiosError(error)) {
+      return {
+        id: jobId,
+        status: 'failed',
+        progress: 0,
+        message: 'Failed to check job status',
+        error: error.response?.data?.detail || error.message
+      };
+    }
+    
+    return {
+      id: jobId,
+      status: 'failed',
+      progress: 0,
+      message: 'An unexpected error occurred',
+      error: 'An unexpected error occurred'
+    };
+  }
+};
+
+/**
+ * Maps frontend aspect ratio format to backend aspect ratio format
+ */
+function mapAspectRatio(aspectRatio: '1:1' | '16:9' | '9:16'): string {
+  switch (aspectRatio) {
+    case '1:1':
+      return 'square';
+    case '16:9':
+      return 'youtube';
+    case '9:16':
+      return 'reel';
+    default:
+      return 'youtube';
+  }
+}
+
+/**
+ * Get the full URL for a video from the backend
+ */
+export const getVideoUrl = (videoPath: string): string => {
+  // If the path already starts with http, it's already a full URL
+  if (videoPath.startsWith('http')) {
+    return videoPath;
+  }
+  
+  // Otherwise, append it to the API URL
+  return `${API_URL}${videoPath}`;
 };
