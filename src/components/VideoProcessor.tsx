@@ -1,26 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import VideoInput from './VideoInput';
 import ProcessingStatus from './ProcessingStatus';
 import VideoPlayer from './VideoPlayer';
 import { toast } from 'sonner';
-
-interface VideoSource {
-  type: 'url' | 'file';
-  source: string | File;
-  query: string;
-  aspectRatio: '1:1' | '16:9' | '9:16';
-  captions: boolean;
-}
-
-interface ApiResponse {
-  success: boolean;
-  videoUrl?: string;
-  error?: string;
-}
+import { processVideo } from '@/services/videoService';
+import { VideoInput as VideoInputType } from '@/lib/types';
 
 const VideoProcessor: React.FC = () => {
-  const [videoSource, setVideoSource] = useState<VideoSource | null>(null);
+  const [videoSource, setVideoSource] = useState<VideoInputType | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processingStage, setProcessingStage] = useState('Initializing');
@@ -36,48 +23,6 @@ const VideoProcessor: React.FC = () => {
     { stage: 'Creating captions', details: ['Transcribing audio', 'Generating timed subtitles', 'Formatting captions'] },
     { stage: 'Finalizing output', details: ['Rendering final video', 'Optimizing file size', 'Preparing download'] }
   ];
-
-  // Make API call to your endpoint
-  const processVideoWithApi = async (data: VideoSource) => {
-    const API_ENDPOINT = 'YOUR_API_ENDPOINT_HERE'; // Replace with your actual API endpoint
-    
-    try {
-      // Create form data for sending to API
-      const formData = new FormData();
-      formData.append('type', data.type);
-      formData.append('query', data.query || '');
-      formData.append('aspectRatio', data.aspectRatio);
-      formData.append('captions', data.captions.toString());
-      
-      if (data.type === 'url') {
-        formData.append('url', data.source as string);
-      } else {
-        formData.append('file', data.source as File);
-      }
-      
-      // Make the API call
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-      }
-      
-      const result: ApiResponse = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to process video');
-      }
-      
-      // Return the processed video URL
-      return result.videoUrl;
-    } catch (error) {
-      console.error('API Processing Error:', error);
-      throw error;
-    }
-  };
 
   // Simulate processing with progress updates
   useEffect(() => {
@@ -118,7 +63,7 @@ const VideoProcessor: React.FC = () => {
     return () => clearInterval(progressInterval);
   }, [isProcessing, videoSource]);
 
-  const handleVideoSubmit = async (data: VideoSource) => {
+  const handleVideoSubmit = async (data: VideoInputType) => {
     setVideoSource(data);
     setIsProcessing(true);
     setProgress(0);
@@ -133,20 +78,33 @@ const VideoProcessor: React.FC = () => {
     });
     
     try {
-      // Comment out the actual API call for now and simulate a response
-      // const videoUrl = await processVideoWithApi(data);
+      // For development/demo purposes, you can choose between the real API call and simulation
+      const USE_REAL_API = false; // Set to true to use the real backend
       
-      // Simulate processing time for demo purposes
-      // In a real application, you would use the actual API response
-      setTimeout(() => {
-        // Simulate a successful response with a sample video URL
-        const sampleVideoUrl = 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+      if (USE_REAL_API) {
+        // Use our axios service to make the real API call
+        const response = await processVideo(data);
         
-        setProcessedVideoUrl(sampleVideoUrl);
+        if (!response.success) {
+          throw new Error(response.error);
+        }
+        
+        setProcessedVideoUrl(response.videoUrl || null);
         setIsProcessing(false);
         setProgress(100);
         toast.success('Video processing complete!');
-      }, 12000); // Longer processing time for better demo
+      } else {
+        // Simulate processing time for demo purposes when no real backend is available
+        setTimeout(() => {
+          // Simulate a successful response with a sample video URL
+          const sampleVideoUrl = 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+          
+          setProcessedVideoUrl(sampleVideoUrl);
+          setIsProcessing(false);
+          setProgress(100);
+          toast.success('Video processing complete!');
+        }, 12000); // Longer processing time for better demo
+      }
     } catch (error) {
       console.error('Error processing video:', error);
       setIsProcessing(false);
