@@ -15,6 +15,8 @@ const App = () => {
   // Set dark mode by default
   useEffect(() => {
     document.documentElement.classList.add('dark');
+    // Set document title to CreAItive
+    document.title = "CreAItive - AI-Powered Video Creation";
   }, []);
 
   return (

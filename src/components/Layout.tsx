@@ -14,6 +14,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/">
             <Logo />
+            <span className="ml-2 text-xl font-semibold text-white">CreAItive</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
@@ -34,7 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
       <footer className="border-t border-vidsmith-border py-6">
         <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
-          <p>© {new Date().getFullYear()} VidSmith. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} CreAItive. All rights reserved.</p>
         </div>
       </footer>
     </div>

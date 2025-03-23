@@ -1,12 +1,10 @@
 
 import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { Link2, Upload, PlayCircle, Ratio, Captions } from 'lucide-react';
+import { Link2, Upload, PlayCircle, Captions } from 'lucide-react';
 import { Textarea } from "./ui/textarea";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
-import { FormControl, FormItem, FormLabel } from "./ui/form";
 
 interface VideoInputProps {
   onVideoSubmit: (data: { 
@@ -132,32 +130,45 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) 
           />
         </div>
 
-        {/* Aspect Ratio Selector */}
+        {/* Visual Aspect Ratio Selector */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Ratio size={16} className="text-gray-300" />
-            <label className="block text-sm text-gray-300">
-              Aspect Ratio
-            </label>
+          <label className="block text-sm text-gray-300 mb-2">
+            Aspect Ratio
+          </label>
+          <div className="flex space-x-4 justify-center">
+            {/* Square 1:1 */}
+            <div 
+              className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '1:1' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
+              onClick={() => !isProcessing && setAspectRatio('1:1')}
+            >
+              <div className="w-20 h-20 bg-vidsmith-muted/40 rounded-md flex items-center justify-center">
+                <div className="w-14 h-14 bg-vidsmith-accent/30 rounded border border-vidsmith-accent/50"></div>
+              </div>
+              <p className="text-xs text-center mt-2 text-gray-300">1:1 Square</p>
+            </div>
+            
+            {/* Landscape 16:9 */}
+            <div 
+              className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '16:9' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
+              onClick={() => !isProcessing && setAspectRatio('16:9')}
+            >
+              <div className="w-20 h-20 bg-vidsmith-muted/40 rounded-md flex items-center justify-center">
+                <div className="w-16 h-9 bg-vidsmith-accent/30 rounded border border-vidsmith-accent/50"></div>
+              </div>
+              <p className="text-xs text-center mt-2 text-gray-300">16:9 Landscape</p>
+            </div>
+            
+            {/* Portrait 9:16 */}
+            <div 
+              className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '9:16' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
+              onClick={() => !isProcessing && setAspectRatio('9:16')}
+            >
+              <div className="w-20 h-20 bg-vidsmith-muted/40 rounded-md flex items-center justify-center">
+                <div className="w-9 h-16 bg-vidsmith-accent/30 rounded border border-vidsmith-accent/50"></div>
+              </div>
+              <p className="text-xs text-center mt-2 text-gray-300">9:16 Portrait</p>
+            </div>
           </div>
-          <RadioGroup 
-            value={aspectRatio} 
-            onValueChange={(value) => setAspectRatio(value as '1:1' | '16:9' | '9:16')}
-            className="flex space-x-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="1:1" id="ratio-square" disabled={isProcessing} />
-              <Label htmlFor="ratio-square" className="text-gray-300">1:1 (Square)</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="16:9" id="ratio-landscape" disabled={isProcessing} />
-              <Label htmlFor="ratio-landscape" className="text-gray-300">16:9 (Landscape)</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="9:16" id="ratio-portrait" disabled={isProcessing} />
-              <Label htmlFor="ratio-portrait" className="text-gray-300">9:16 (Portrait)</Label>
-            </div>
-          </RadioGroup>
         </div>
 
         {/* Captions Toggle */}
