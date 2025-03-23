@@ -120,35 +120,38 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) 
           <div className="flex space-x-4 justify-center">
             {/* Square 1:1 */}
             <div 
-              className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '1:1' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
+              className={`aspect-ratio-option cursor-pointer transition-all duration-200 rounded-full p-1 ${
+                aspectRatio === '1:1' ? 'bg-vidsmith-accent/20 ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'
+              }`}
               onClick={() => !isProcessing && setAspectRatio('1:1')}
             >
-              <div className="w-20 h-20 bg-[#151515] rounded-md flex items-center justify-center">
-                <div className="w-14 h-14 border border-white/30 rounded"></div>
+              <div className="w-14 h-14 bg-[#151515] rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-white/30 rounded"></div>
               </div>
-              <p className="text-xs text-center mt-2 text-gray-300">1:1 Square</p>
             </div>
             
             {/* Landscape 16:9 */}
             <div 
-              className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '16:9' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
+              className={`aspect-ratio-option cursor-pointer transition-all duration-200 rounded-full p-1 ${
+                aspectRatio === '16:9' ? 'bg-vidsmith-accent/20 ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'
+              }`}
               onClick={() => !isProcessing && setAspectRatio('16:9')}
             >
-              <div className="w-20 h-20 bg-[#151515] rounded-md flex items-center justify-center">
-                <div className="w-16 h-9 border border-white/30 rounded"></div>
+              <div className="w-14 h-14 bg-[#151515] rounded-full flex items-center justify-center">
+                <div className="w-10 h-6 border-2 border-white/30 rounded"></div>
               </div>
-              <p className="text-xs text-center mt-2 text-gray-300">16:9 Landscape</p>
             </div>
             
             {/* Portrait 9:16 */}
             <div 
-              className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '9:16' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
+              className={`aspect-ratio-option cursor-pointer transition-all duration-200 rounded-full p-1 ${
+                aspectRatio === '9:16' ? 'bg-vidsmith-accent/20 ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'
+              }`}
               onClick={() => !isProcessing && setAspectRatio('9:16')}
             >
-              <div className="w-20 h-20 bg-[#151515] rounded-md flex items-center justify-center">
-                <div className="w-9 h-16 border border-white/30 rounded"></div>
+              <div className="w-14 h-14 bg-[#151515] rounded-full flex items-center justify-center">
+                <div className="w-6 h-10 border-2 border-white/30 rounded"></div>
               </div>
-              <p className="text-xs text-center mt-2 text-gray-300">9:16 Portrait</p>
             </div>
           </div>
         </div>
