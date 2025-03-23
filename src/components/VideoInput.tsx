@@ -1,9 +1,8 @@
 
 import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { Link2, Upload, PlayCircle, Captions } from 'lucide-react';
+import { Upload, Captions } from 'lucide-react';
 import { Textarea } from "./ui/textarea";
-import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 
 interface VideoInputProps {
@@ -18,7 +17,7 @@ interface VideoInputProps {
 }
 
 const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) => {
-  const [inputType, setInputType] = useState<'url' | 'file'>('url');
+  const [inputType, setInputType] = useState<'url' | 'file'>('file');
   const [videoUrl, setVideoUrl] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [userQuery, setUserQuery] = useState('');
@@ -97,42 +96,25 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) 
 
   return (
     <div className="w-full max-w-xl mx-auto">
-      <div className="flex justify-center space-x-4 mb-6">
-        <button
-          className={`flex items-center px-4 py-2 rounded-md ${inputType === 'url' ? 'bg-vidsmith-accent text-white' : 'bg-vidsmith-muted text-gray-300'}`}
-          onClick={() => setInputType('url')}
-        >
-          <Link2 size={18} className="mr-2" />
-          URL
-        </button>
-        <button
-          className={`flex items-center px-4 py-2 rounded-md ${inputType === 'file' ? 'bg-vidsmith-accent text-white' : 'bg-vidsmith-muted text-gray-300'}`}
-          onClick={() => setInputType('file')}
-        >
-          <Upload size={18} className="mr-2" />
-          Upload
-        </button>
-      </div>
-
-      <div className="glass-panel p-6 w-full">
-        {/* User query input field - common for both input types */}
+      <div className="bg-[#0A0A0A] border border-[#1F1F1F] rounded-md shadow-md p-6">
+        {/* Query input field */}
         <div className="space-y-2 mb-6">
-          <label htmlFor="user-query" className="block text-sm text-gray-300">
+          <label htmlFor="user-query" className="block text-sm text-gray-300 text-left">
             What clips would you like to generate? (optional)
           </label>
           <Textarea
             id="user-query"
             placeholder="E.g., 'Extract the most exciting moments' or 'Create clips showing product demos'"
-            className="glass-input w-full min-h-[80px] text-white bg-vidsmith-muted/30 border-vidsmith-border"
+            className="min-h-[80px] text-white bg-[#151515] border-[#2A2A2A]"
             value={userQuery}
             onChange={(e) => setUserQuery(e.target.value)}
             disabled={isProcessing}
           />
         </div>
 
-        {/* Visual Aspect Ratio Selector */}
+        {/* Aspect Ratio Selector */}
         <div className="mb-6">
-          <label className="block text-sm text-gray-300 mb-2">
+          <label className="block text-sm text-gray-300 mb-3 text-left">
             Aspect Ratio
           </label>
           <div className="flex space-x-4 justify-center">
@@ -141,8 +123,8 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) 
               className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '1:1' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
               onClick={() => !isProcessing && setAspectRatio('1:1')}
             >
-              <div className="w-20 h-20 bg-vidsmith-muted/40 rounded-md flex items-center justify-center">
-                <div className="w-14 h-14 bg-vidsmith-accent/30 rounded border border-vidsmith-accent/50"></div>
+              <div className="w-20 h-20 bg-[#151515] rounded-md flex items-center justify-center">
+                <div className="w-14 h-14 border border-white/30 rounded"></div>
               </div>
               <p className="text-xs text-center mt-2 text-gray-300">1:1 Square</p>
             </div>
@@ -152,8 +134,8 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) 
               className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '16:9' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
               onClick={() => !isProcessing && setAspectRatio('16:9')}
             >
-              <div className="w-20 h-20 bg-vidsmith-muted/40 rounded-md flex items-center justify-center">
-                <div className="w-16 h-9 bg-vidsmith-accent/30 rounded border border-vidsmith-accent/50"></div>
+              <div className="w-20 h-20 bg-[#151515] rounded-md flex items-center justify-center">
+                <div className="w-16 h-9 border border-white/30 rounded"></div>
               </div>
               <p className="text-xs text-center mt-2 text-gray-300">16:9 Landscape</p>
             </div>
@@ -163,8 +145,8 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) 
               className={`aspect-ratio-option cursor-pointer transition-all duration-200 ${aspectRatio === '9:16' ? 'ring-2 ring-vidsmith-accent scale-105' : 'opacity-70 hover:opacity-100'}`}
               onClick={() => !isProcessing && setAspectRatio('9:16')}
             >
-              <div className="w-20 h-20 bg-vidsmith-muted/40 rounded-md flex items-center justify-center">
-                <div className="w-9 h-16 bg-vidsmith-accent/30 rounded border border-vidsmith-accent/50"></div>
+              <div className="w-20 h-20 bg-[#151515] rounded-md flex items-center justify-center">
+                <div className="w-9 h-16 border border-white/30 rounded"></div>
               </div>
               <p className="text-xs text-center mt-2 text-gray-300">9:16 Portrait</p>
             </div>
@@ -186,69 +168,47 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoSubmit, isProcessing }) 
           />
         </div>
 
-        {inputType === 'url' ? (
-          <form onSubmit={handleUrlSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="video-url" className="block text-sm text-gray-300">
-                Video URL
-              </label>
-              <input
-                id="video-url"
-                type="url"
-                placeholder="https://example.com/video.mp4"
-                className="glass-input w-full"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                disabled={isProcessing}
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn-primary w-full flex items-center justify-center"
+        {/* Upload area */}
+        <div className="space-y-4">
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragActive ? 'border-vidsmith-accent bg-vidsmith-accent/5' : 'border-gray-600'
+            } ${isProcessing ? 'pointer-events-none opacity-60' : ''}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="video/*"
+              onChange={handleFileChange}
               disabled={isProcessing}
-            >
-              <PlayCircle size={18} className="mr-2" />
-              {isProcessing ? 'Processing...' : 'Generate Clips'}
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive ? 'border-vidsmith-accent bg-vidsmith-accent/10' : 'border-vidsmith-border'
-              } ${isProcessing ? 'pointer-events-none opacity-60' : ''}`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept="video/*"
-                onChange={handleFileChange}
-                disabled={isProcessing}
-              />
-              <Upload className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+            />
+            <div className="flex flex-col items-center">
+              <Upload className="h-16 w-16 text-gray-400 mb-4" />
               <p className="text-sm text-gray-300 mb-1">
                 {selectedFile ? selectedFile.name : 'Drag and drop your video here'}
               </p>
-              <p className="text-xs text-gray-400">
-                {selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB` : 'or click to select a file'}
+              <p className="text-xs text-gray-500">
+                {selectedFile 
+                  ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB` 
+                  : 'or click to select a file'}
               </p>
             </div>
-            <button
-              className="btn-primary w-full flex items-center justify-center"
-              onClick={handleFileSubmit}
-              disabled={!selectedFile || isProcessing}
-            >
-              <PlayCircle size={18} className="mr-2" />
-              {isProcessing ? 'Processing...' : 'Generate Clips'}
-            </button>
           </div>
-        )}
+          
+          <button
+            className="w-full bg-vidsmith-accent hover:bg-vidsmith-accent-light text-white py-3 rounded-md font-medium transition-colors"
+            onClick={handleFileSubmit}
+            disabled={!selectedFile || isProcessing}
+          >
+            Generate Clips
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -75,8 +75,7 @@
   }
 
   body {
-    @apply bg-vidsmith-dark text-foreground antialiased overflow-x-hidden;
-    background-image: radial-gradient(circle at center, rgba(58, 175, 169, 0.03) 0%, rgba(15, 15, 15, 0) 70%);
+    @apply bg-black text-foreground antialiased overflow-x-hidden;
   }
 
   /* Scrollbar styles */
@@ -129,3 +128,11 @@
   }
 }
 
+/* Additional dark theme styles to match the design in the image */
+body {
+  background-color: #000000;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-[#3AAFA9] to-[#5ECECA] bg-clip-text text-transparent;
+}

@@ -137,9 +137,9 @@ const VideoProcessor: React.FC = () => {
         <div className="space-y-6">
           <VideoPlayer src={processedVideoUrl} title="Your Processed Video" />
           
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-6">
             <button 
-              className="btn-primary"
+              className="bg-vidsmith-accent hover:bg-vidsmith-accent-light text-white font-medium px-6 py-3 rounded-md transition-all duration-200"
               onClick={() => {
                 setVideoSource(null);
                 setProcessedVideoUrl(null);
